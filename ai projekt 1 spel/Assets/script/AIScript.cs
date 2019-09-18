@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class AIScript : MonoBehaviour {
 
@@ -31,16 +33,18 @@ public class AIScript : MonoBehaviour {
 	public bool HaveFinished {
 		get {return haveFinished;}
 	}
-
 	void Start () {
 	}
 
 	public void prepareAI() {
 		carPos = new Vector2Int ((int)carScript.transform.position.x, (int)carScript.transform.position.y);
 		lowestTotalCost = -1;
+        Stopwatch s = new Stopwatch();
 		for (int i = 0; i < tileScript.FinishTile.GetLength (0); i++) {
+            s.Start();
 			Vector2Int targetPosition = tileScript.FinishTile [i];
 			TileForList startTile = new TileForList (carPos, 0, calculateDistanceToTarget (carPos, targetPosition), carScript.CurrentSpeed, null, "Start Tile", targetPosition);
+            s.Stop();
 			if (debugMode) {
 				print (startTile.ToString ());
 			}
@@ -49,12 +53,16 @@ public class AIScript : MonoBehaviour {
 			openlist.Add (startTile);
 			findOptimalPath ();
 		}
+        Debug.Log("prepareAI" + s.Elapsed.TotalSeconds);
 	}
 
 	private void findOptimalPath() {
 		int sentinel = 500;
 		while (0 < openlist.Count && 0 < sentinel ) {
-			print ("sentinel: " + sentinel);
+            if (debugMode)
+            {
+                print("sentinel: " + sentinel);
+            }
 			sentinel--;
 			TileForList currentTile = openlist [0];
 			openlist.RemoveAt (0);
@@ -94,7 +102,7 @@ public class AIScript : MonoBehaviour {
 				int nextYPosition = currentTile.position.y;
 				addToOpenList(new Vector2Int(nextXPosition, nextYPosition), currentTile.tileCost + 1, nextSpeed, currentTile, "Do Nothing");
 			}
-			if (canMoveUp (currentTile.speed, currentTile.position.y)) {
+			if (canMoveUp (currentTile.speed, currentTile.position)) {
 				int nextSpeed = currentTile.speed;
 				int [] makeMovesArray = makeMoves(nextSpeed, currentTile, +1);
 				nextSpeed = makeMovesArray [0];
@@ -102,7 +110,7 @@ public class AIScript : MonoBehaviour {
 				int nextYPosition = currentTile.position.y + 1;
 				addToOpenList(new Vector2Int(nextXPosition, nextYPosition), currentTile.tileCost + 1, nextSpeed, currentTile, "Move Up");
 			}
-			if (canMoveDown(currentTile.speed, currentTile.position.y)) {
+			if (canMoveDown(currentTile.speed, currentTile.position)) {
 				int nextSpeed = currentTile.speed;
 				int [] makeMovesArray = makeMoves(nextSpeed, currentTile, -1);
 				nextSpeed = makeMovesArray [0];
@@ -127,7 +135,7 @@ public class AIScript : MonoBehaviour {
 //			}
 			openlist.Sort ((a, b) => a.tileTotalCost.CompareTo(b.tileTotalCost));
 		}
-	}
+    }
 
 	private int calculateDistanceToTarget(Vector2Int currentPosition, Vector2Int finishPosition) {
 		return (int)((finishPosition - currentPosition).magnitude);
@@ -154,16 +162,16 @@ public class AIScript : MonoBehaviour {
 	}
 
 	private void sortOpenList() {
-		TileForList currentTile;
-		for (int i = 1; i < openlist.Count; i++) {
-			currentTile = openlist [i];
-			int j = i - 1;
-			while (j >= 0 && currentTile.tileTotalCost < openlist [j].tileTotalCost) {
-				openlist [j + 1] = openlist [j];
-				j--;
-			}
-			openlist [j + 1] = currentTile;
-		}
+  //      for (int i = 1; i < openlist.Count; i++) {
+		//	currentTile = openlist [i];
+		//	int j = i - 1;
+		//	while (j >= 0 && currentTile.tileTotalCost < openlist [j].tileTotalCost) {
+		//		openlist [j + 1] = openlist [j];
+		//		j--;
+		//	}
+		//	openlist [j + 1] = currentTile;
+		//}
+        openlist.Sort((TileForList currentTile, TileForList compareTile) => currentTile.tileTotalCost.CompareTo(compareTile.tileTotalCost));
 	}
 
 	private void createPath(TileForList finishTile) {
@@ -202,7 +210,26 @@ public class AIScript : MonoBehaviour {
 		public string previousAction;
 		public string thisAction;
 		public Vector2Int targetPosition;
-		public TileForList(Vector2Int position, int tileCost, int tileTotalCost, int speed,
+
+        public override bool Equals(object obj)
+        {
+            if(obj.GetType() == typeof(TileForList))
+            {
+                TileForList objTile = (TileForList)obj;
+                if(objTile.position == this.position && objTile.speed == this.speed && objTile.tileTotalCost == this.tileTotalCost)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return position.GetHashCode() + speed.GetHashCode() * 11 + tileTotalCost.GetHashCode() * 19;
+        }
+
+        public TileForList(Vector2Int position, int tileCost, int tileTotalCost, int speed,
 			TileForList previousTile, string previousAction, Vector2Int targetPosition) {
 			this.position = position;
 			this.tileCost = tileCost;
@@ -239,18 +266,20 @@ public class AIScript : MonoBehaviour {
 		return true;
 	}
 
-	private bool canMoveUp(int currentSpeed, int currentY) {
-		if (currentSpeed <= carScript.MaximumSpeedForHeightChange) {
-			if (currentY + 1< tileScript.TileArray.GetLength (1)) {
+	private bool canMoveUp(int currentSpeed, Vector2Int position) {
+        if (position.y + 1 < tileScript.TileArray.GetLength(1))
+        {
+            if (currentSpeed <= carScript.MaximumSpeedForHeightChange && tileScript.TileArray[position.x, position.y + 1] != -1) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private bool canMoveDown(int currentSpeed, int currentY) {
-		if (currentSpeed <= carScript.MaximumSpeedForHeightChange) {
-			if (0 < currentY) {
+	private bool canMoveDown(int currentSpeed, Vector2Int position) {
+        if (0 < position.y)
+        {
+            if (currentSpeed <= carScript.MaximumSpeedForHeightChange && tileScript.TileArray[position.x, position.y -1] != -1) {
 				return true;
 			}
 		}
