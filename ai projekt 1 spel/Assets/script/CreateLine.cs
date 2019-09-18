@@ -12,15 +12,21 @@ public class CreateLine : TileScript {
 	private GameObject finishTileObject;
 	// Use this for initialization
 	void Start () {
-		Assert.IsFalse (numberOfTiles < finishTile || finishTile < 0);
+	}
+
+	public override void createTrack() {
+		Assert.IsFalse (numberOfTiles < finishDistance || finishDistance < 0);
+		finishTile = new Vector2Int[1];
 		tileArray = new int[numberOfTiles,1];
 		for (int i = 0; i < numberOfTiles; i++) {
-			if (i != finishTile) {
+			if (i != finishDistance) {
 				GameObject obj = Instantiate (tileObject, new Vector3 (1f * i, 0f, 0f), Quaternion.identity);
+				obj.GetComponent<ChangeTile> ().TileScript = this;
 				tileArray [i,0] = 1;
 			} else {
 				GameObject obj = Instantiate (finishTileObject, new Vector3 (1f * i, 0f, 0f), Quaternion.identity);
 				tileArray [i,0] = 2;
+				finishTile [0] = new Vector2Int (i, 0);
 			}
 		}
 	}

@@ -2,17 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TileScript : MonoBehaviour {
+public abstract class TileScript : MonoBehaviour {
 	[SerializeField]
 	protected int[,] tileArray;
 	[SerializeField]
-	private int finishTile = 0;
+	protected Vector2Int[] finishTile;
+	[SerializeField]
+	protected int finishDistance;
 
 	public int[,] TileArray {
 		get { return tileArray; }
 	}
 
-	public int FinishTile {
+	public Vector2Int[] FinishTile {
 		get { return finishTile; }
 	}
+
+	public void changeTileStatus (Vector2Int position, int tileStatusChange) {
+		tileArray [position.x, position.y] = tileStatusChange;
+	}
+
+	public abstract void createTrack ();
 }
