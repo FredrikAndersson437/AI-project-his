@@ -351,6 +351,9 @@ MonoBehaviour:
   carScript: {fileID: 1332263980}
   tileScript: {fileID: 217373211}
   debugMode: 0
+  createDebugTiles: 1
+  debugTile: {fileID: 6801725426961809165, guid: b1c4b4252ff0f2f438c892cea1e0305e,
+    type: 3}
 --- !u!4 &333427399
 Transform:
   m_ObjectHideFlags: 0
@@ -581,6 +584,9 @@ MonoBehaviour:
   carScript: {fileID: 1910103422}
   tileScript: {fileID: 217373211}
   debugMode: 0
+  createDebugTiles: 0
+  debugTile: {fileID: 6801725426961809165, guid: b1c4b4252ff0f2f438c892cea1e0305e,
+    type: 3}
 --- !u!4 &1016978893
 Transform:
   m_ObjectHideFlags: 0
@@ -688,6 +694,11 @@ PrefabInstance:
       propertyPath: tileScript
       value: 
       objectReference: {fileID: 217373211}
+    - target: {fileID: 114831167870049238, guid: 39c7a1359759c1247873c5d0b4a3ec6d,
+        type: 3}
+      propertyPath: minSpeed
+      value: -2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 39c7a1359759c1247873c5d0b4a3ec6d, type: 3}
 --- !u!114 &1332263980 stripped
@@ -964,6 +975,26 @@ PrefabInstance:
       propertyPath: tileScript
       value: 
       objectReference: {fileID: 217373211}
+    - target: {fileID: 114831167870049238, guid: 39c7a1359759c1247873c5d0b4a3ec6d,
+        type: 3}
+      propertyPath: minSpeed
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 212213740068794212, guid: 39c7a1359759c1247873c5d0b4a3ec6d,
+        type: 3}
+      propertyPath: m_Color.r
+      value: 0.46226418
+      objectReference: {fileID: 0}
+    - target: {fileID: 212213740068794212, guid: 39c7a1359759c1247873c5d0b4a3ec6d,
+        type: 3}
+      propertyPath: m_Color.g
+      value: 0.46226418
+      objectReference: {fileID: 0}
+    - target: {fileID: 212213740068794212, guid: 39c7a1359759c1247873c5d0b4a3ec6d,
+        type: 3}
+      propertyPath: m_Color.b
+      value: 0.46226418
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 39c7a1359759c1247873c5d0b4a3ec6d, type: 3}
 --- !u!114 &1910103422 stripped
