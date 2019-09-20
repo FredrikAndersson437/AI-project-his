@@ -5,7 +5,7 @@ using UnityEngine;
 public class ChangeTile : MonoBehaviour {
 
 	[SerializeField]
-	private bool isObstacle;
+	private bool isObstacle = false;
 	[SerializeField]
 	private TileScript tileScript;
 	// Use this for initialization
@@ -14,7 +14,13 @@ public class ChangeTile : MonoBehaviour {
 		set{tileScript = value;}
 	}
 
-	void Start () {
+    public bool IsObstacle
+    {
+        set { isObstacle = value; }
+    }
+
+
+    void Start () {
 		
 	}
 	

@@ -14,6 +14,8 @@ public class CarScript : MonoBehaviour {
 
 	public TileScript tileScript;
 
+    private string previousAction;
+
 	public int CurrentSpeed {
 		get{ return currentSpeed;}
 	}
@@ -34,7 +36,8 @@ public class CarScript : MonoBehaviour {
 	public void accelerate() {
 		if (currentSpeed < maxSpeed && !haveDoneTurn) {
 			currentSpeed++;
-			haveDoneTurn = true;
+            previousAction = "Accelerate";
+            haveDoneTurn = true;
 		}
         else
         {
@@ -45,7 +48,8 @@ public class CarScript : MonoBehaviour {
 	public void deaccelerate() {
 		if (minSpeed < currentSpeed && !haveDoneTurn) {
 			currentSpeed--;
-			haveDoneTurn = true;
+            previousAction = "Deaccelerate";
+            haveDoneTurn = true;
 		}
         else
         {
@@ -56,16 +60,18 @@ public class CarScript : MonoBehaviour {
 	public void doNothing() {
         if (!haveDoneTurn)
         {
+            previousAction = "Do Nothing";
             haveDoneTurn = true;
         }
 	}
 
 	public void moveUp() {
         Vector3 previousPos = transform.position;
-		if (transform.position.y + 1 < tileScript.TileArray.GetLength(1) && currentSpeed <= maximumSpeedForHeightChange && !haveDoneTurn) {
+		if (previousAction != "Move Down" && transform.position.y + 1 < tileScript.TileArray.GetLength(1) && currentSpeed <= maximumSpeedForHeightChange && !haveDoneTurn) {
 			transform.Translate(new Vector3 (0f, 1f, 0f));
             if(checkCollision())
             {
+                previousAction = "Move Up";
                 transform.position = previousPos;
             }
             haveDoneTurn = true;
@@ -78,10 +84,11 @@ public class CarScript : MonoBehaviour {
 
 	public void moveDown() {
         Vector3 previousPos = transform.position;
-        if (0 < transform.position.y && currentSpeed <= maximumSpeedForHeightChange && !haveDoneTurn) {
+        if (previousAction != "Move Up" && 0 < transform.position.y && currentSpeed <= maximumSpeedForHeightChange && !haveDoneTurn) {
 			transform.Translate(new Vector3 (0f, -1f, 0f));
             if (checkCollision())
             {
+                previousAction = "Move Down";
                 transform.position = previousPos;
             }
             haveDoneTurn = true;
@@ -94,7 +101,8 @@ public class CarScript : MonoBehaviour {
 
     public bool checkCollision()
     {
-        if(tileScript.TileArray[(int)transform.position.x, (int)transform.position.y] == -1)
+        if((int)transform.position.x < 0 || (int)transform.position.y < 0 || tileScript.TileArray.GetLength(0) <= transform.position.x ||
+            tileScript.TileArray.GetLength(1) <= transform.position.y || tileScript.TileArray[(int)transform.position.x, (int)transform.position.y] == -1)
         {
             return true;
         }

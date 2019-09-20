@@ -281,6 +281,10 @@ public class AIScript : MonoBehaviour {
 
     private class TileForClosedList : TileForList
     {
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
         public TileForClosedList(Vector2Int position, int tileCost, int tileTotalCost, int speed,
             TileForList previousTile, string previousAction, Vector2Int targetPosition)
             : base(position, tileCost, tileTotalCost, speed, previousTile, previousAction, targetPosition)

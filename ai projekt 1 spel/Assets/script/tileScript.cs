@@ -23,4 +23,6 @@ public abstract class TileScript : MonoBehaviour {
 	}
 
 	public abstract void createTrack ();
+
+    public abstract void createTrack(string fileName);
 }

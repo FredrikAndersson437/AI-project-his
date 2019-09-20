@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
+using System.IO;
+using Newtonsoft.Json;
 
 public class CreateLine : TileScript {
 	[SerializeField]
@@ -31,8 +33,11 @@ public class CreateLine : TileScript {
 		}
 	}
 
-	// Update is called once per frame
-	void Update () {
+    public override void createTrack(string fileName) {
+        tileArray = JsonConvert.DeserializeObject<int[,]>(File.ReadAllText(fileName));
+    }
+        // Update is called once per frame
+        void Update () {
 		
 	}
 }
