@@ -14,7 +14,7 @@ public class CarScript : MonoBehaviour {
 
 	public TileScript tileScript;
 
-    private string previousAction;
+    private string previousAction = "";
 
 	public int CurrentSpeed {
 		get{ return currentSpeed;}
@@ -33,6 +33,10 @@ public class CarScript : MonoBehaviour {
 	private bool haveDoneTurn = false;
 	// Use this for initialization
 
+    public bool HaveDoneTurn
+    {
+        get { return haveDoneTurn; }
+    }
 	public void accelerate() {
 		if (currentSpeed < maxSpeed && !haveDoneTurn) {
 			currentSpeed++;
@@ -67,12 +71,14 @@ public class CarScript : MonoBehaviour {
 
 	public void moveUp() {
         Vector3 previousPos = transform.position;
-		if (previousAction != "Move Down" && transform.position.y + 1 < tileScript.TileArray.GetLength(1) && currentSpeed <= maximumSpeedForHeightChange && !haveDoneTurn) {
+		if (!string.Equals(previousAction, "Move Down") && transform.position.y + 1 < tileScript.TileArray.GetLength(1) && currentSpeed <= maximumSpeedForHeightChange && !haveDoneTurn) {
 			transform.Translate(new Vector3 (0f, 1f, 0f));
             if(checkCollision())
             {
-                previousAction = "Move Up";
                 transform.position = previousPos;
+            } else
+            {
+                previousAction = "Move Up";
             }
             haveDoneTurn = true;
 		}
@@ -84,12 +90,15 @@ public class CarScript : MonoBehaviour {
 
 	public void moveDown() {
         Vector3 previousPos = transform.position;
-        if (previousAction != "Move Up" && 0 < transform.position.y && currentSpeed <= maximumSpeedForHeightChange && !haveDoneTurn) {
+        if (!string.Equals(previousAction, "Move Up") && 0 < transform.position.y && currentSpeed <= maximumSpeedForHeightChange && !haveDoneTurn) {
 			transform.Translate(new Vector3 (0f, -1f, 0f));
             if (checkCollision())
             {
-                previousAction = "Move Down";
                 transform.position = previousPos;
+            }
+            else
+            {
+                previousAction = "Move Down";
             }
             haveDoneTurn = true;
 		}
@@ -112,7 +121,7 @@ public class CarScript : MonoBehaviour {
 	public void moveCar() {
 		if (haveDoneTurn) {
             int numberOfMoves = Mathf.Abs(currentSpeed);
-            Debug.Log(numberOfMoves);
+            //Debug.Log(numberOfMoves);
             for (int moves = 0; moves < numberOfMoves; moves++)
             {
                 Vector3 previousPos = transform.position;
@@ -137,4 +146,29 @@ public class CarScript : MonoBehaviour {
             Debug.Log("Car has not done its turn");
         }
 	}
+
+    public bool canAccelerate()
+    {
+        return currentSpeed < maxSpeed && !haveDoneTurn;
+    }
+
+    public bool canDeaccelerate()
+    {
+        return minSpeed < currentSpeed && !haveDoneTurn && 0 < transform.position.x;
+    }
+
+    public bool canDoNothing()
+    {
+        return !haveDoneTurn;
+    }
+
+    public bool canMoveUp()
+    {
+        return !string.Equals(previousAction,"Move Down") && transform.position.y + 1 < tileScript.TileArray.GetLength(1) && currentSpeed <= maximumSpeedForHeightChange && !haveDoneTurn;
+    }
+
+    public bool canMoveDown()
+    {
+        return !string.Equals(previousAction, "Move Up") && 0 < transform.position.y && currentSpeed <= maximumSpeedForHeightChange && !haveDoneTurn;
+    }
 }

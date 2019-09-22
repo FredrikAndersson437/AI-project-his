@@ -10,8 +10,9 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour {
 
 	private int turn;
-	[SerializeField]
-	private GameObject[] carArray = new GameObject[2];
+    [SerializeField]
+    private GameObject carHolder;
+	private List<GameObject> carList = new List<GameObject>();
 	[SerializeField]
 	private AIScript[] aiPlayers = new AIScript[2];
 	[SerializeField]
@@ -30,13 +31,30 @@ public class GameManager : MonoBehaviour {
     private int turnCounter = 0;
     [SerializeField]
     private Text turnCounterText;
+    [SerializeField]
+    private bool testingAi = false;
 
-	public bool GameHasStarted {
+    private bool gameHaveFinished = false;
+
+    [SerializeField]
+    private PlayerScript playerScript;
+
+    private List<GameObject> finishList = new List<GameObject>();
+
+    [SerializeField]
+    private Text victoryText;
+    [SerializeField]
+    private Button startButton;
+    [SerializeField]
+    private Canvas difficultyButtons;
+
+    public bool GameHasStarted {
 		get{return gameHasStarted;}
 	}
 
 	// Use this for initialization
 	void Start () {
+        victoryText.gameObject.SetActive(false);
         if (useCreatedTrack)
         {
             tileScript.createTrack(trackName);
@@ -45,7 +63,11 @@ public class GameManager : MonoBehaviour {
         {
             tileScript.createTrack();
         }
-	}
+        for (int i = 0; i < carHolder.transform.childCount; i++)
+        {
+            carList.Add(carHolder.transform.GetChild(i).gameObject);
+        }
+    }
 
     public void saveTrack()
     {
@@ -54,13 +76,23 @@ public class GameManager : MonoBehaviour {
 
 	public void startGame() {
 		if (!gameHasStarted) {
-			gameHasStarted = true;
+            difficultyButtons.gameObject.SetActive(false);
+            gameHasStarted = true;
 			for (int i = 0; i < aiPlayers.Length; i++) {
 				aiPlayers [i].prepareAI ();
 			}
-			StartCoroutine (test ());
+            if (testingAi)
+            {
+                StartCoroutine(test());
+            }
+            else
+            {
+                playerScript.activatePlayer();
+                StartCoroutine(trueGame());
+            }
 		}
-	}
+        startButton.gameObject.SetActive(false);
+    }
 
 	public void changeTile() {
 		if(!gameHasStarted && Input.GetMouseButtonDown(0)) {
@@ -79,11 +111,32 @@ public class GameManager : MonoBehaviour {
 	public void moveCars () {
         turnCounter++;
         turnCounterText.text = "Turn: " + turnCounter;
-        for (int i = 0; i < carArray.Length; i++) {
-			GameObject currentCar = carArray [i];
+        for (int i = 0; i < carList.Count; i++) {
+			GameObject currentCar = carList[i];
 			currentCar.GetComponent<CarScript> ().moveCar ();
 		}
-	}
+        checkIfFinished();
+    }
+
+    public IEnumerator trueGame()
+    {
+        while(!gameHaveFinished)
+        {
+            yield return new WaitForSeconds (1f);
+            if(!playerScript.PlayerIsActive)
+            {
+                for (int i = 0; i < aiPlayers.Length; i++)
+                {
+                    if (!aiPlayers[i].HaveFinished)
+                    {
+                        aiPlayers[i].nextCarAction();
+                    }
+                }
+                    moveCars();
+                playerScript.activatePlayer();
+            }
+        }
+    }
 
 	public IEnumerator test() {
 		while (!AIPlayersFinished) {
@@ -100,4 +153,42 @@ public class GameManager : MonoBehaviour {
 		}
 		print ("Ai player have finished");
 	}
+
+    private void checkIfFinished()
+    {
+        for(int i = 0; i < carList.Count; i++)
+        {
+            if (tileScript.FinishDistance <= carList[i].transform.position.x)
+            {
+                gameHaveFinished = true;
+                finishList.Add(carList[i].gameObject);
+            }
+        }
+        if(gameHaveFinished)
+        {
+            printVictoryText();
+        }
+    }
+
+    private void printVictoryText()
+    {
+        if(finishList.Count == 1)
+        {
+            victoryText.text = finishList[0].name + " Won!";
+        }
+        else
+        {
+            victoryText.text = "";
+            for (int i = 0; i < finishList.Count; i++)
+            {
+                victoryText.text += finishList[i].name;
+                if(i+1 != finishList.Count)
+                {
+                    victoryText.text += " and ";
+                }
+            }
+            victoryText.text += " Won!";
+        }
+        victoryText.gameObject.SetActive(true);
+    }
 }

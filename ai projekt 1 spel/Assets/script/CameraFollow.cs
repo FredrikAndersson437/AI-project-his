@@ -23,12 +23,12 @@ public class CameraFollow : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Input.mousePosition.x > Screen.width + edgeSize && transform.position.x < xMaxBound) {
+		if (Input.mousePosition.x > Screen.width - edgeSize && transform.position.x < xMaxBound) {
 			transform.Translate(new Vector3(cameraMoveSpeed * Time.deltaTime, 0f, 0f));
 		} else if (Input.mousePosition.x < edgeSize && transform.position.x > xMinBound) {
 			transform.Translate(new Vector3(-cameraMoveSpeed * Time.deltaTime, 0f, 0f));
 		}
-		if (Input.mousePosition.y > Screen.height + edgeSize && transform.position.y < yMaxBound) {
+		if (Input.mousePosition.y > Screen.height - edgeSize && transform.position.y < yMaxBound) {
 			transform.Translate(new Vector3(0f, cameraMoveSpeed * Time.deltaTime, 0f));
 		} else if (Input.mousePosition.y < edgeSize && transform.position.y > yMinBound) {
 			transform.Translate(new Vector3(0f, -cameraMoveSpeed * Time.deltaTime, 0f));

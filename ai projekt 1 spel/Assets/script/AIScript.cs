@@ -33,6 +33,22 @@ public class AIScript : MonoBehaviour {
     [SerializeField]
     private GameObject debugTile;
 
+    [SerializeField]
+    private enum difficultyEnum {
+        Perfect,
+        Hard,
+        Normal,
+        Easy
+    };
+
+    [SerializeField]
+    private int difficulty;
+
+    [SerializeField]
+    private int numberOfPerfectMoves;
+    [SerializeField]
+    private bool isOutOfPosition = true;
+
     // Use this for initialization
 
     public bool HaveFinished {
@@ -41,7 +57,28 @@ public class AIScript : MonoBehaviour {
     void Start() {
     }
 
+    public void setDifficultyToPerfect()
+    {
+        difficulty = (int)difficultyEnum.Perfect;
+    }
+
+    public void setDifficultyToHard()
+    {
+        difficulty = (int)difficultyEnum.Hard;
+    }
+
+    public void setDifficultyToNormal()
+    {
+        difficulty = (int)difficultyEnum.Normal;
+    }
+
+    public void setDifficultyToEasy()
+    {
+        difficulty = (int)difficultyEnum.Easy;
+    }
+
     public void prepareAI() {
+        restoreMoves();
         carPos = new Vector2Int((int)carScript.transform.position.x, (int)carScript.transform.position.y);
         lowestTotalCost = -1;
         Stopwatch s = new Stopwatch();
@@ -57,18 +94,16 @@ public class AIScript : MonoBehaviour {
             openlist.Add(startTile);
             findOptimalPath();
         }
+        isOutOfPosition = false;
         s.Stop();
         Debug.Log("prepareAI time taken" + s.Elapsed.TotalSeconds);
     }
 
     private void findOptimalPath() {
         int sentinel = 5000;
-        while (0 < openlist.Count && 0 < sentinel) {
-            if (debugMode)
-            {
-                print("sentinel: " + sentinel);
-            }
-            sentinel--;
+        while (0 < openlist.Count) {
+            //Debug.Log("sentinel: " + sentinel);
+            //sentinel--;
             TileForList currentTile = openlist[0];
             openlist.RemoveAt(0);
             closedlist.Add(new TileForClosedList(currentTile));
@@ -79,11 +114,15 @@ public class AIScript : MonoBehaviour {
             {
                 continue;
             }
-            if (currentTile.targetPosition.x == currentTile.position.x && currentTile.position.y == currentTile.targetPosition.y && (currentTile.tileTotalCost < lowestTotalCost || lowestTotalCost == -1)) {
-                lowestTotalCost = currentTile.tileTotalCost;
-                Debug.Log("lowestTotalCost: " + lowestTotalCost);
-                currentTile.thisAction = "Finish";
-                createPath(currentTile);
+            if (currentTile.targetPosition.x == currentTile.position.x && currentTile.position.y == currentTile.targetPosition.y) {
+                if (currentTile.tileTotalCost < lowestTotalCost || lowestTotalCost == -1)
+                {
+                    optimalSolution.Clear();
+                    lowestTotalCost = currentTile.tileTotalCost;
+                    Debug.Log("lowestTotalCost: " + lowestTotalCost);
+                    currentTile.thisAction = "Finish";
+                    createPath(currentTile);
+                }
                 break;
             }
             if (createDebugTiles)
@@ -155,7 +194,7 @@ public class AIScript : MonoBehaviour {
         }
         if (sentinel == 0)
         {
-            Debug.Log("sentinel reached zero");
+            Debug.Log("sentinel reached zero, openlist count: " + openlist.Count);
         }
     }
 
@@ -206,7 +245,7 @@ public class AIScript : MonoBehaviour {
         }
         TileForList previousTile = finishTile.previousTile;
         previousTile.thisAction = finishTile.previousAction;
-        while (previousTile != null && 0 < sentinel) {
+        while (previousTile != null) {
             sentinel--;
             optimalSolution.Push(previousTile);
             if (debugMode) {
@@ -298,9 +337,9 @@ public class AIScript : MonoBehaviour {
         }
         public override bool Equals(object obj)
         {
-            if (obj.GetType() == typeof(TileForList))
+            if (obj.GetType() == typeof(TileForClosedList))
             {
-                TileForList objTile = (TileForList)obj;
+                TileForClosedList objTile = (TileForClosedList)obj;
                 if (objTile.position == this.position && objTile.speed == this.speed && objTile.tileTotalCost == this.tileTotalCost)
                 {
                     return true;
@@ -393,8 +432,70 @@ public class AIScript : MonoBehaviour {
         return false;
     }
 
+    public void restoreMoves()
+    {
+        if(difficulty == (int)difficultyEnum.Hard)
+        {
+            numberOfPerfectMoves = 16;
+        } else if (difficulty == (int)difficultyEnum.Normal)
+        {
+            numberOfPerfectMoves = 12;
+        } else if (difficulty == (int)difficultyEnum.Easy)
+        {
+            numberOfPerfectMoves = 8;
+        }
+    }
+
     private TileForList getNextMove() {
-        return optimalSolution.Pop();
+        if(isOutOfPosition)
+        {
+            prepareAI();
+        }
+        if (difficulty == (int)difficultyEnum.Perfect || 0 < numberOfPerfectMoves)
+        {
+            if (difficulty != (int)difficultyEnum.Perfect)
+            {
+                numberOfPerfectMoves--;
+            }
+            return optimalSolution.Pop();
+        } else
+        {
+            bool doneMove = false;
+            TileForList modified = optimalSolution.Pop();
+            Vector2Int position = new Vector2Int((int)carScript.transform.position.x, (int)carScript.transform.position.y);
+            while (!doneMove)
+            {
+                int randomValue = (int)Random.Range(0, 5);
+                Debug.Log("Random Value " + randomValue);
+                if (!doneMove && randomValue == 0 && carScript.canAccelerate())
+                {
+                    modified.thisAction = "Accelerate";
+                    doneMove = true;
+                }
+                else if (!doneMove && randomValue == 1 && carScript.canDeaccelerate())
+                {
+                    modified.thisAction = "Deaccelerate";
+                    doneMove = true;
+                }
+                else if (!doneMove && randomValue == 2 && carScript.canDoNothing())
+                {
+                    modified.thisAction = "Do Nothing";
+                    doneMove = true;
+                }
+                else if (!doneMove && randomValue == 3 && carScript.canMoveUp())
+                {
+                    modified.thisAction = "Move Up";
+                    doneMove = true;
+                }
+                else if (!doneMove && randomValue == 4 && carScript.canMoveDown())
+                {
+                    modified.thisAction = "Move Down";
+                    doneMove = true;
+                }
+            }
+            isOutOfPosition = true;
+            return modified;
+        }
     }
 
     public void nextCarAction() {

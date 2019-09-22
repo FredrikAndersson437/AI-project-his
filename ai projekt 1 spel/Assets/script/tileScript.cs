@@ -18,7 +18,12 @@ public abstract class TileScript : MonoBehaviour {
 		get { return finishTile; }
 	}
 
-	public void changeTileStatus (Vector2Int position, int tileStatusChange) {
+    public int FinishDistance
+    {
+        get { return finishDistance; }
+    }
+
+    public void changeTileStatus (Vector2Int position, int tileStatusChange) {
 		tileArray [position.x, position.y] = tileStatusChange;
 	}
 
